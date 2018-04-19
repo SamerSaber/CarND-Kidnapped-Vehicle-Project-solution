@@ -17,7 +17,7 @@
 
 #include "particle_filter.h"
 
-#define NUM_OF_PARTICLES 1000
+#define NUM_OF_PARTICLES 20
 #define SIGMA .0001
 using namespace std;
 
@@ -44,6 +44,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		P.id = i;
 
 		particles.push_back(P);
+		weights.push_back(P.weight);
 	}
 	is_initialized = true;
 }
@@ -55,10 +56,11 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
 	double predicted_x, predicted_y, predicted_theta;
+	default_random_engine gen;
 
 	for (int i = 0; i < num_particles; i++)
 	{
-		if (abs(yaw_rate) < SIGMA)
+		if (fabs(yaw_rate) < SIGMA)
 		{
 			predicted_x = particles[i].x + velocity * cos(particles[i].theta) * delta_t;
 			predicted_y = particles[i].y + velocity * sin(particles[i].theta) * delta_t;
@@ -71,7 +73,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 			predicted_theta = particles[i].theta + (yaw_rate * delta_t);
 		}
 
-		default_random_engine gen;
+
+
 		normal_distribution<double> dist_x(predicted_x, std_pos[0]);
 		normal_distribution<double> dist_y(predicted_y, std_pos[1]);
 		normal_distribution<double> dist_theta(predicted_theta, std_pos[2]);
@@ -195,7 +198,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	  /*Step 5: Normalize the weights of all particles since resmapling using probabilistic approach.*/
 	  for (int i = 0; i < particles.size(); i++) {
 		particles[i].weight /= weight_normalizer;
-		weights.push_back(particles[i].weight);
+		weights[i] = particles[i].weight;
 	  }
 
 }
